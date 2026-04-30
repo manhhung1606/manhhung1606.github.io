@@ -756,8 +756,8 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
              }
-                .g2-input {
-                            .g2-input {
+                
+            .g2-input {
                 display: block !important;
                 position: relative !important;
                 z-index: 3 !important;
@@ -779,13 +779,13 @@ function showGlitchPopup2() {
                 touch-action: manipulation !important;
                 }
                 /* Chặn đứng lỗi nhảy chữ trên Firefox */
-                .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
-                .g2-input::placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+            .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+            .g2-input::placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
 
                 
                
-               .g2-input:focus { border-color: #0ff; }
-               .g2-btn {
+            .g2-input:focus { border-color: #0ff; }
+            .g2-btn {
                 position: relative;
                 z-index: 3;
                 display: inline-block;
