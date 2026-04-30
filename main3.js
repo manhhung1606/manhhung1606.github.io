@@ -1021,9 +1021,12 @@ $('<style>')
             line-height: 50px !important;
             font-size: 16px !important;
             font-family: 'Jura', sans-serif !important;
+            display: flex !important;
+            align-items: center !important;
         }
-        .g2-input::placeholder {
+        .g2-input::-moz-placeholder {
             line-height: 50px !important;
+            opacity: 1 !important;
         }
     `)
     .appendTo('head');
