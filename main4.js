@@ -663,12 +663,17 @@ $('#yes').click(function() {
 })
 
 function showGlitchPopup2() {
-    // FIX Firefox zoom: chặn user-scalable khi popup2 mở
+    // FIX Firefox zoom: inject hoặc cập nhật meta viewport
     var metaViewport = document.querySelector('meta[name="viewport"]');
-    if (metaViewport) {
+    if (!metaViewport) {
+        metaViewport = document.createElement('meta');
+        metaViewport.name = 'viewport';
+        metaViewport._injected = true;
+        document.head.appendChild(metaViewport);
+    } else {
         metaViewport._origContent = metaViewport.getAttribute('content');
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
     }
+    metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
     var style2 = document.getElementById('glitch-style2');
     if (!style2) {
         style2 = document.createElement('style');
@@ -844,12 +849,21 @@ function showGlitchPopup2() {
         textGenerate(this);
     });
 
+    function restoreViewport() {
+        var mv = document.querySelector('meta[name="viewport"]');
+        if (!mv) return;
+        if (mv._injected) {
+            mv.remove();
+        } else if (mv._origContent) {
+            mv.setAttribute('content', mv._origContent);
+        }
+    }
+
     // Click ra ngoài → chỉ vỡ mảnh đóng lại, KHÔNG mở popup sau
     overlay2.addEventListener('click', function(e) {
         if (e.target === overlay2) {
             cancelAnimationFrame(animId2.id());
-            var mv = document.querySelector('meta[name="viewport"]');
-            if (mv && mv._origContent) mv.setAttribute('content', mv._origContent);
+            restoreViewport();
             shatterAndRemove('g2-overlay', null, null);
         }
     });
@@ -857,8 +871,7 @@ function showGlitchPopup2() {
     // Bấm Send → vỡ mảnh rồi mới mở popup3
     document.getElementById('g2-btn-send').addEventListener('click', function() {
         cancelAnimationFrame(animId2.id());
-        var mv = document.querySelector('meta[name="viewport"]');
-        if (mv && mv._origContent) mv.setAttribute('content', mv._origContent);
+        restoreViewport();
         shatterAndRemove('g2-overlay', null, function() {
             showGlitchPopup3();
         });
