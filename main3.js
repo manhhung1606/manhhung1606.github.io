@@ -641,24 +641,16 @@ $('#no').click(() => {
 })
 
 function textGenerate() {
-    var n = "";
-    var text = " " + CONFIG.reply;
-    var a = Array.from(text);
-    var textVal = $('#txtReason').val() ? $('#txtReason').val() : "";
-    var count = textVal.length;
-    if (count > 0) {
-        for (let i = 1; i <= count; i++) {
-            n = n + a[i];
-            if (i == text.length + 1) {
-                $('#txtReason').val("");
-                n = "";
-                break;
-            }
-        }
+    var text = CONFIG.reply;
+    var val = $('#txtReason').val();
+    if (val.length > 0) {
+        $('#txtReason').val(text.substring(0, val.length));
     }
-    $('#txtReason').val(n);
-    setTimeout("textGenerate()", 1);
+    if (val.length > text.length) {
+        $('#txtReason').val("");
+    }
 }
+
 
 $('#yes').click(function() {
     var audio = new Audio('https://hungdeptrai.com');
@@ -763,48 +755,34 @@ function showGlitchPopup2() {
                 margin-bottom: 20px;
                 word-break: break-word;
                 line-height: 1.4;
-            }
+             }
                 .g2-input {
-                all: unset;
-
+                            .g2-input {
+                display: block !important;
                 position: relative !important;
                 z-index: 3 !important;
-                display: block !important;
-
                 width: 100% !important;
-                min-height: 48px !important;
-                padding: 12px 16px !important;
+                height: 50px !important;
+                padding: 0 16px !important;
                 box-sizing: border-box !important;
-
-                font-family: Arial, sans-serif !important;
-                font-size: 16px !important;
-                line-height: 1.4 !important;
-                font-weight: 400 !important;
-
-                color: #0cf !important;
-                background: rgba(0,10,40,0.9) !important;
-
-                border: 1.5px solid rgba(0,170,255,0.4) !important;
+                /* Đồng bộ font Jura giống style1.css */
+                font-family: 'Jura', sans-serif !important;
+                font-size: 16px !important; 
+                line-height: 50px !important;
+                color: #FAFAFA !important;
+                background: rgba(0, 10, 40, 0.9) !important;
+                border: 1.5px solid rgba(0, 170, 255, 0.4) !important;
                 border-radius: 4px !important;
                 outline: none !important;
-
-                transform: none !important;
-                zoom: 1 !important;
-                
-
-                appearance: none !important;
-                -webkit-appearance: none !important;
-                -moz-appearance: none !important;
+                text-shadow: 0 0 0.5em cyan !important;
+                margin: 20px 0 !important;
+                touch-action: manipulation !important;
                 }
-                .g2-input::placeholder,
-                .g2-input::-moz-placeholder {
-                line-height: normal;
-                vertical-align: middle;
-                font-size: 16px !important;
-                font-weight: 400 !important;
-                color: rgba(255,255,255,0.45) !important;
-                opacity: 1 !important;
-                }  
+                /* Chặn đứng lỗi nhảy chữ trên Firefox */
+                .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+                .g2-input::placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+
+                
                
                .g2-input:focus { border-color: #0ff; }
                .g2-btn {
