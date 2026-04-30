@@ -767,10 +767,10 @@ function showGlitchPopup2() {
             .g2-input {
                 position: relative;
                 z-index: 3;
-                width: 100%;
-                padding: 12px 16px;
+                width: calc(100% / 0.75);
+                padding: 16px 21px;
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 12px;
+                font-size: 16px;
                 color: #0cf;
                 background: rgba(0,10,40,0.8);
                 border: 1.5px solid rgba(0,170,255,0.3);
@@ -778,6 +778,9 @@ function showGlitchPopup2() {
                 outline: none;
                 margin-bottom: 0;
                 box-sizing: border-box;
+                transform: scale(0.75);
+                transform-origin: top left;
+                margin-right: calc(-100% / 4);
             }
             .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
             .g2-input:focus { border-color: #0ff; }
