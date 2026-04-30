@@ -764,11 +764,12 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
             }
+            /* FIX: xóa transform scale, width 100%, font-size >= 16px để Firefox không zoom */
             .g2-input {
                 position: relative;
                 z-index: 3;
-                width: calc(100% / 0.75);
-                padding: 16px 21px;
+                width: 100%;
+                padding: 12px 16px;
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 16px;
                 color: #0cf;
@@ -778,9 +779,6 @@ function showGlitchPopup2() {
                 outline: none;
                 margin-bottom: 0;
                 box-sizing: border-box;
-                transform: scale(0.75);
-                transform-origin: top left;
-                margin-right: calc(-100% / 4);
             }
             .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
             .g2-input:focus { border-color: #0ff; }
@@ -821,7 +819,7 @@ function showGlitchPopup2() {
                     <canvas class="g2-glitch-canvas" id="g2-glitch-cv"></canvas>
                 </div>
                 <div class="g2-title">${CONFIG.question}</div>
-                <input type="text" class="g2-input" id="txtReason" onmousemove="textGenerate()" placeholder=" Viết gì cũng được... ">
+                <input type="text" class="g2-input" id="txtReason" placeholder=" Viết gì cũng được... ">
                 <button class="g2-btn" id="g2-btn-send">${CONFIG.btnReply}</button>
             </div>
         </div>
