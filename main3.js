@@ -790,7 +790,7 @@ function showGlitchPopup2() {
 
                 transform: none !important;
                 zoom: 1 !important;
-                scale: 1 !important;
+                
 
                 appearance: none !important;
                 -webkit-appearance: none !important;
@@ -803,7 +803,7 @@ function showGlitchPopup2() {
                 color: rgba(255,255,255,0.45) !important;
                 opacity: 1 !important;
                 }  
-               .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
+               
                .g2-input:focus { border-color: #0ff; }
                .g2-btn {
                 position: relative;
