@@ -686,6 +686,7 @@ function showGlitchPopup2() {
                 position: relative;
                 border-radius: 8px;
                 width: 100%;
+                min-width: 0;
                 max-width: 560px;
                 animation: gPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
             }
