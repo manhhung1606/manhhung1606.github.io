@@ -5,18 +5,17 @@ $(document).ready(function() {
         $('#preloader').delay(350).fadeOut('slow');
         $('body').delay(350).css({ 'overflow': 'visible' });
     }, 600);
-})
+});
 
 function init(){
-    $('#title').text(CONFIG.title)
-    $('#desc').text(CONFIG.desc)
-    $('#yes').text(CONFIG.btnYes)
-    $('#no').text(CONFIG.btnNo)
+    $('#title').text(CONFIG.title);
+    $('#desc').text(CONFIG.desc);
+    $('#yes').text(CONFIG.btnYes);
+    $('#no').text(CONFIG.btnNo);
 }
 
 // ============================================================
-// SHATTER EFFECT — dùng chung cho mọi popup
-// canvas: element canvas, targetEl: wrap cần vỡ, cb: callback
+// SHATTER EFFECT — Hiệu ứng vỡ mảnh khi đóng popup
 // ============================================================
 function shatterAndRemove(overlayId, _unused, cb) {
     var overlay = document.getElementById(overlayId);
@@ -54,15 +53,12 @@ function shatterAndRemove(overlayId, _unused, cb) {
             var dist = Math.sqrt(dx*dx + dy*dy) || 1;
             var speed = 4 + Math.random() * 8;
             pieces.push({
-                sx: sx, sy: sy,
-                x: cx, y: cy,
+                sx: sx, sy: sy, x: cx, y: cy,
                 vx: (dx/dist) * speed + (Math.random()-0.5)*3,
                 vy: (dy/dist) * speed + (Math.random()-0.5)*3 - 2,
                 gravity: 0.4 + Math.random()*0.3,
-                rot: 0,
-                rotSpeed: (Math.random()-0.5) * 0.25,
-                alpha: 1,
-                pw: pw, ph: ph
+                rot: 0, rotSpeed: (Math.random()-0.5) * 0.25,
+                alpha: 1, pw: pw, ph: ph
             });
         }
     }
@@ -74,19 +70,11 @@ function shatterAndRemove(overlayId, _unused, cb) {
         if (!startTime) startTime = ts;
         var elapsed = ts - startTime;
         var progress = Math.min(elapsed / duration, 1);
-
         sctx.clearRect(0, 0, W, H);
-
-        var allDone = true;
         for (var i = 0; i < pieces.length; i++) {
             var p = pieces[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += p.gravity;
-            p.rot += p.rotSpeed;
+            p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.rot += p.rotSpeed;
             p.alpha = 1 - progress;
-            if (p.alpha > 0) allDone = false;
-
             sctx.save();
             sctx.globalAlpha = Math.max(0, p.alpha);
             sctx.translate(p.x, p.y);
@@ -96,191 +84,99 @@ function shatterAndRemove(overlayId, _unused, cb) {
             sctx.strokeStyle = 'rgba(0,200,255,0.8)';
             sctx.lineWidth = 1;
             sctx.strokeRect(-p.pw/2, -p.ph/2, p.pw, p.ph);
-            sctx.strokeStyle = 'rgba(0,220,255,0.5)';
-            sctx.lineWidth = 0.5;
-            sctx.beginPath();
-            sctx.moveTo(-p.pw/2, -p.ph/4);
-            sctx.lineTo(p.pw/4, p.ph/2);
-            sctx.stroke();
             sctx.restore();
         }
-
-        if (progress < 1) {
-            requestAnimationFrame(animShatter);
-        } else {
-            sc.remove();
-            overlay.remove();
-            if (cb) cb();
-        }
+        if (progress < 1) requestAnimationFrame(animShatter);
+        else { sc.remove(); overlay.remove(); if (cb) cb(); }
     }
     requestAnimationFrame(animShatter);
 }
+// ============================================================
+// SHARED: Dual neon border + tuyết rơi
+// ============================================================
+function startNeonSnow(wrap, canvas, ctx) {
+    var angle = 0, snowflakes = [], SNOW_COUNT = 35;
+    var animId;
+    function initSnow(w, h) {
+        snowflakes = [];
+        for (var i = 0; i < SNOW_COUNT; i++) {
+            snowflakes.push({
+                x: Math.random() * w, y: Math.random() * h,
+                r: 1 + Math.random() * 2.5, speed: 0.4 + Math.random() * 0.8,
+                drift: (Math.random() - 0.5) * 0.4, alpha: 0.4 + Math.random() * 0.5
+            });
+        }
+    }
+    function draw() {
+        var w = wrap.offsetWidth, h = wrap.offsetHeight;
+        if (w < 1 || h < 1) { animId = requestAnimationFrame(draw); return; }
+        canvas.width = w; canvas.height = h;
+        if (snowflakes.length === 0) initSnow(w, h);
+        ctx.clearRect(0, 0, w, h);
+        var pos = (angle/360) * (2*(w+h));
+        ctx.strokeStyle = 'hsl('+(angle%360)+',100%,65%)';
+        ctx.lineWidth = 5; ctx.shadowBlur = 20; ctx.shadowColor = 'cyan';
+        ctx.setLineDash([150, 800]); ctx.lineDashOffset = -pos;
+        ctx.strokeRect(0, 0, w, h);
+        
+        ctx.save();
+        for (var i = 0; i < snowflakes.length; i++) {
+            var s = snowflakes[i];
+            s.y += s.speed; s.x += s.drift;
+            if (s.y > h) s.y = 0;
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(200,230,255,' + s.alpha + ')'; ctx.fill();
+        }
+        ctx.restore();
+        angle = (angle + 1.5) % 360;
+        animId = requestAnimationFrame(draw);
+    }
+    draw();
+    return { id: function(){ return animId; } };
+}
 
+// ============================================================
+// VHS GLITCH: Hiệu ứng nhiễu ảnh
+// ============================================================
+function startVhsGlitch(imgId, canvasId) {
+    var img = document.getElementById(imgId);
+    var cv = document.getElementById(canvasId);
+    if (!img || !cv) return;
+    var ctx = cv.getContext('2d');
+    var glitching = false;
+    function triggerGlitch() {
+        glitching = true;
+        setTimeout(function() { glitching = false; ctx.clearRect(0, 0, cv.width, cv.height); schedule(); }, 400);
+    }
+    function schedule() { setTimeout(triggerGlitch, 2000 + Math.random() * 3000); }
+    function draw() {
+        if (glitching && img.complete) {
+            cv.width = img.offsetWidth; cv.height = img.offsetHeight;
+            ctx.drawImage(img, (Math.random()-0.5)*10, 0, cv.width, cv.height);
+            ctx.fillStyle = "rgba(255,0,0,0.1)"; ctx.fillRect(0,0,cv.width,cv.height);
+        }
+        requestAnimationFrame(draw);
+    }
+    img.complete ? (schedule(), draw()) : img.addEventListener('load', function(){ schedule(); draw(); });
+}
+// ============================================================
+// POPUP 1: Intro
+// ============================================================
 function firstQuestion(){
     $('body').css('overflow', 'hidden');
     $('#wrapper, header, #yes, #no, .inner-width, center, p, span[id^="a"], #chaffle-title, #slider, footer, #demo-1, #demo-2, #demo-3').hide();
-    $('.leaf').remove();
-
+    
     var style = document.createElement('style');
-    style.id = 'glitch-main-style';
     style.textContent = `
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
-
-        #glitch-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Share Tech Mono', monospace;
-            padding: 16px;
-        }
-
-        #glitch-wrap {
-            position: relative;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 560px;
-            animation: gPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-        }
-        @keyframes gPopIn {
-            from { transform: scale(0.7) translateY(30px); opacity: 0; }
-            to   { transform: scale(1) translateY(0); opacity: 1; }
-        }
-
-        #glitch-canvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 8px;
-            pointer-events: none;
-            z-index: 20;
-        }
-
-        #glitch-box {
-            position: relative;
-            width: 100%;
-            background: rgba(5, 5, 30, 0.92);
-            border-radius: 6px;
-            padding: 32px 24px 28px;
-            text-align: center;
-            box-shadow: inset 0 0 40px rgba(0,50,150,0.15);
-        }
-
-        .g-avatar-wrap {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            aspect-ratio: 1 / 1;
-            margin: 0 auto 22px;
-            z-index: 3;
-            overflow: hidden;
-            border-radius: 3px;
-            box-shadow: 0 0 0 1.5px rgba(0,200,255,0.5),
-                        0 0 8px 2px rgba(0,200,255,0.3),
-                        inset 0 0 6px rgba(0,200,255,0.15);
-            animation: innerNeonPulse 2.5s ease-in-out infinite;
-        }
-        @keyframes innerNeonPulse {
-            0%,100% { box-shadow: 0 0 0 1.5px rgba(0,200,255,0.5), 0 0 8px 2px rgba(0,200,255,0.3), inset 0 0 6px rgba(0,200,255,0.15); }
-            50%     { box-shadow: 0 0 0 1.5px rgba(180,0,255,0.5), 0 0 10px 3px rgba(180,0,255,0.3), inset 0 0 8px rgba(180,0,255,0.15); }
-        }
-        .g-avatar-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            border-radius: 3px;
-            animation: vhsGlitch 4s infinite;
-        }
-        .g-glitch-canvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 4;
-            border-radius: 3px;
-        }
-        @keyframes vhsGlitch {
-            0%,88%,100% { filter: none; transform: translate(0,0); }
-            89% { filter: hue-rotate(90deg) saturate(2); transform: translate(-3px,0) skewX(-1deg); }
-            90% { filter: hue-rotate(180deg) saturate(3) brightness(1.3); transform: translate(3px,0); }
-            91% { filter: none; transform: translate(0,0); }
-            94% { filter: hue-rotate(270deg) saturate(2); transform: translate(-2px,1px) skewX(2deg); }
-            95% { filter: none; transform: translate(0,0); }
-        }
-
-        .g-greeting {
-            position: relative;
-            z-index: 3;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 0 8px rgba(0,200,255,0.8), 0 0 20px rgba(0,150,255,0.4);
-            animation: gTextGlitch 4s infinite;
-            line-height: 1.5;
-            margin-bottom: 10px;
-            word-break: break-word;
-            white-space: pre-wrap;
-        }
-        @keyframes gTextGlitch {
-            0%,85%,100% { text-shadow:0 0 8px rgba(0,200,255,0.8),0 0 20px rgba(0,150,255,0.4); transform:translate(0,0); }
-            86% { text-shadow:-2px 0 #f03,2px 0 #0cf; transform:translate(-1px,0); }
-            87% { text-shadow:2px 0 #f03,-2px 0 #0cf; transform:translate(2px,0); }
-            88% { text-shadow:0 0 8px rgba(0,200,255,0.8); transform:translate(0,0); }
-            92% { text-shadow:-3px 0 #f03,3px 0 #0cf; transform:translate(1px,0); }
-            93% { text-shadow:0 0 8px rgba(0,200,255,0.8); transform:translate(0,0); }
-        }
-
-        .g-sub {
-            position: relative;
-            z-index: 3;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 0 8px rgba(0,200,255,0.8), 0 0 20px rgba(0,150,255,0.4);
-            letter-spacing: 1px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            word-break: break-word;
-        }
-        @keyframes gBlink { 0%,100%{opacity:0.85} 50%{opacity:0.4} }
-
-        .g-cursor {
-            display: inline-block;
-            width: 2px; height: 1em;
-            background: #0cf;
-            margin-left: 2px;
-            vertical-align: middle;
-            animation: gCursorBlink 0.8s steps(1) infinite;
-        }
-        @keyframes gCursorBlink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
-
-        .g-btn {
-            position: relative;
-            z-index: 3;
-            display: inline-block;
-            padding: 12px 38px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: #fff;
-            background: transparent;
-            border: 1.5px solid rgba(0,170,255,0.3);
-            border-radius: 2px;
-            cursor: pointer;
-            text-transform: uppercase;
-            overflow: hidden;
-            transition: color 0.2s;
-            margin-bottom: 0;
-        }
-        .g-btn:hover { color: #0df; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Jura:wght@500&display=swap');
+        #glitch-overlay { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(5,5,30,0.8); padding: 16px; }
+        #glitch-wrap { position: relative; width: 100%; max-width: 560px; animation: gPopIn 0.6s both; }
+        #glitch-box { position: relative; background: rgba(5, 5, 30, 0.95); padding: 32px 24px; text-align: center; border-radius: 6px; box-shadow: 0 0 20px rgba(0,200,255,0.2); }
+        .g-avatar-wrap { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto 20px; overflow: hidden; border: 1.5px solid #0cf; }
+        .g-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .g-greeting { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; margin-bottom: 10px; }
+        .g-btn { padding: 12px 38px; font-family: 'Orbitron', sans-serif; color: #fff; background: transparent; border: 1.5px solid #0cf; cursor: pointer; }
+        @keyframes gPopIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     `;
     document.head.appendChild(style);
 
@@ -288,296 +184,120 @@ function firstQuestion(){
     overlay.id = 'glitch-overlay';
     overlay.innerHTML = `
         <div id="glitch-wrap">
-            <canvas id="glitch-canvas"></canvas>
+            <canvas id="glitch-canvas" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:20;"></canvas>
             <div id="glitch-box">
-                <div class="g-avatar-wrap" id="g1-avatar-wrap">
-                    <img id="g1-img" src="https://manhhung1606.github.io/manhhung/Save = Follow\u2661\u300cH\u01b0\u01a1ng \u300d\u2661.jpeg"
-                         onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="M\u1ea1nh H\u00f9ng">
-                    <canvas class="g-glitch-canvas" id="g1-glitch-cv"></canvas>
-                </div>
-                <div class="g-greeting"><span id="g-typeText"></span></div>
-                <div class="g-sub" id="g-sub-scramble"></div>
+                <div class="g-avatar-wrap"><img id="g1-img" src="https://manhhung1606.github.io/manhhung/Save = Follow♡「Hương 」♡.jpeg"><canvas id="g1-glitch-cv" style="position:absolute; inset:0;"></canvas></div>
+                <div class="g-greeting" id="g-typeText"></div>
+                <div class="g-greeting" id="g-sub-scramble" style="font-size:14px; opacity:0.8; margin-bottom:20px;"></div>
                 <button class="g-btn" id="g-btn-ok">${CONFIG.btnIntro}</button>
             </div>
         </div>
     `;
     document.body.appendChild(overlay);
 
-    var wrap = document.getElementById('glitch-wrap');
-    var canvas = document.getElementById('glitch-canvas');
-    var ctx = canvas.getContext('2d');
-    var animId;
-
-    animId = startNeonSnow(wrap, canvas, ctx);
+    startNeonSnow(document.getElementById('glitch-wrap'), document.getElementById('glitch-canvas'), document.getElementById('glitch-canvas').getContext('2d'));
     startVhsGlitch('g1-img', 'g1-glitch-cv');
 
-    function startScramble(targetText, element, delayMs) {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&!?';
-        var revealed = 0;
-        var total = targetText.length;
-        var frame = 0;
-        var revealEvery = 3;
-        var intervalMs = 40;
-        function step() {
-            if (revealed >= total) {
-                element.textContent = targetText;
-                return;
-            }
-            var display = targetText.slice(0, revealed);
-            for (var i = revealed; i < total; i++) {
-                display += targetText[i] === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)];
-            }
-            element.textContent = display;
-            frame++;
-            if (frame % revealEvery === 0) revealed++;
-            setTimeout(step, intervalMs);
+    $('#g-typeText').text(CONFIG.introTitle);
+    $('#g-sub-scramble').text(CONFIG.introDesc);
+
+    $('#g-btn-ok').click(function() { shatterAndRemove('glitch-overlay', null, afterFirstPopup); });
+}
+
+// ============================================================
+// POPUP 2: Question (Fix Firefox)
+// ============================================================
+function showGlitchPopup2() {
+    var style2 = document.createElement('style');
+    style2.textContent = `
+        #g2-overlay { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,40,0.7); padding: 16px; }
+        #g2-wrap { position: relative; width: 100%; max-width: 560px; animation: gPopIn 0.6s both; }
+        #g2-box { background: rgba(5, 5, 30, 0.95); padding: 32px 24px; text-align: center; border-radius: 6px; }
+        .g2-title { font-family: 'Orbitron', sans-serif; font-size: 20px; color: #fff; margin-bottom: 20px; }
+        .g2-input {
+            display: block !important; width: 100% !important; height: 50px !important;
+            margin: 20px 0 !important; padding: 0 16px !important;
+            background: rgba(0, 10, 40, 0.9) !important; border: 1.5px solid #0cf !important;
+            color: #fff !important; font-family: 'Jura', sans-serif !important; font-size: 16px !important;
+            line-height: normal !important; box-sizing: border-box !important; outline: none !important;
         }
-        setTimeout(step, delayMs);
-    }
+        .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(255,255,255,0.5); }
+        .g2-input::placeholder { line-height: 50px !important; }
+        .g2-btn { width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; background: transparent; border: 1.5px solid #0cf; cursor: pointer; }
+    `;
+    document.head.appendChild(style2);
 
-    startScramble(CONFIG.introTitle, document.getElementById('g-typeText'), 700);
-    startScramble(CONFIG.introDesc, document.getElementById('g-sub-scramble'), 700);
+    var overlay2 = document.createElement('div');
+    overlay2.id = 'g2-overlay';
+    overlay2.innerHTML = `
+        <div id="g2-wrap">
+            <canvas id="g2-canvas" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:20;"></canvas>
+            <div id="g2-box">
+                <div class="g2-avatar-wrap"><img id="g2-img" src="https://manhhung1606.github.io/manhhung/Save = Follow♡「Hương 」♡.jpeg"><canvas id="g2-glitch-cv" style="position:absolute; inset:0;"></canvas></div>
+                <div class="g2-title">${CONFIG.question}</div>
+                <input type="text" class="g2-input" id="txtReason" oninput="textGenerate()" placeholder="Viết gì cũng được...">
+                <button class="g2-btn" id="g2-btn-send">${CONFIG.btnReply}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay2);
+    startNeonSnow(document.getElementById('g2-wrap'), document.getElementById('g2-canvas'), document.getElementById('g2-canvas').getContext('2d'));
+    startVhsGlitch('g2-img', 'g2-glitch-cv');
 
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            cancelAnimationFrame(animId.id());
-            shatterAndRemove('glitch-overlay', null, function() {
-                afterFirstPopup();
-            });
-        }
-    });
+    $('#g2-btn-send').click(function() { shatterAndRemove('g2-overlay', null, showGlitchPopup3); });
+}
+// ============================================================
+// POPUP 3: Final (Full ảnh & hiệu ứng)
+// ============================================================
+function showGlitchPopup3() {
+    var style3 = document.createElement('style');
+    style3.textContent = `
+        #g3-overlay { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,40,0.7); padding: 16px; }
+        #g3-wrap { position: relative; width: 100%; max-width: 560px; animation: gPopIn 0.6s both; }
+        #g3-box { background: rgba(5,5,30,0.95); padding: 32px 24px; text-align: center; border-radius: 6px; }
+        .g3-msg { font-family: 'Share Tech Mono', monospace; font-size: 22px; color: #0cf; margin-bottom: 24px; }
+        .g3-btn { width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; color: #fff; background: transparent; border: 1.5px solid #0cf; cursor: pointer; }
+    `;
+    document.head.appendChild(style3);
 
-    document.getElementById('g-btn-ok').addEventListener('click', function() {
-        cancelAnimationFrame(animId.id());
-        shatterAndRemove('glitch-overlay', null, function() {
-            afterFirstPopup();
-        });
+    var overlay3 = document.createElement('div');
+    overlay3.id = 'g3-overlay';
+    overlay3.innerHTML = `
+        <div id="g3-wrap">
+            <canvas id="g3-canvas" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:20;"></canvas>
+            <div id="g3-box">
+                <div class="g3-avatar-wrap">
+                    <img id="g3-img" src="https://manhhung1606.github.io/manhhung/1777441906182.png">
+                    <canvas id="g3-glitch-cv" style="position:absolute; inset:0;"></canvas>
+                </div>
+                <div style="font-size: 30px; margin-bottom: 10px;">${CONFIG.mess}</div>
+                <div class="g3-msg">${CONFIG.messDesc}</div>
+                <button class="g3-btn" id="g3-btn-ok">${CONFIG.btnAccept}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay3);
+    startNeonSnow(document.getElementById('g3-wrap'), document.getElementById('g3-canvas'), document.getElementById('g3-canvas').getContext('2d'));
+    startVhsGlitch('g3-img', 'g3-glitch-cv');
+
+    $('#g3-btn-ok').click(function() { 
+        shatterAndRemove('g3-overlay', null, function() { if (CONFIG.messLink) window.location = CONFIG.messLink; });
     });
 }
 
 // ============================================================
-// SHARED: Dual neon border (2 tia đối xứng) + tuyết rơi
+// LOGIC CƠ BẢN
 // ============================================================
-function startNeonSnow(wrap, canvas, ctx) {
-    var angle = 0;
-    var snowflakes = [];
-    var SNOW_COUNT = 35;
-    var prevW = 0, prevH = 0;
-    var animId;
-
-    function initSnow(w, h) {
-        snowflakes = [];
-        for (var i = 0; i < SNOW_COUNT; i++) {
-            snowflakes.push({
-                x: Math.random() * w,
-                y: Math.random() * h,
-                r: 1 + Math.random() * 2.5,
-                speed: 0.4 + Math.random() * 0.8,
-                drift: (Math.random() - 0.5) * 0.4,
-                alpha: 0.4 + Math.random() * 0.5
-            });
-        }
-    }
-
-    function makePath(w, h, r) {
-        var p = new Path2D();
-        p.moveTo(r,0); p.lineTo(w-r,0); p.arcTo(w,0,w,r,r);
-        p.lineTo(w,h-r); p.arcTo(w,h,w-r,h,r);
-        p.lineTo(r,h); p.arcTo(0,h,0,h-r,r);
-        p.lineTo(0,r); p.arcTo(0,0,r,0,r);
-        p.closePath();
-        return p;
-    }
-
-    function draw() {
-        var w = wrap.offsetWidth, h = wrap.offsetHeight;
-        if (w < 1 || h < 1) { animId = requestAnimationFrame(draw); return; }
-        canvas.width = w; canvas.height = h;
-        if (w !== prevW || h !== prevH) { initSnow(w, h); prevW = w; prevH = h; }
-
-        ctx.clearRect(0, 0, w, h);
-        var r = 8, perimeter = 2*(w+h), tailLen = perimeter * 0.18;
-        var path = makePath(w, h, r);
-
-        ctx.save();
-        ctx.strokeStyle = 'rgba(0,200,255,0.15)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke(path);
-        ctx.restore();
-
-        var pos1 = (angle/360) * perimeter;
-        var hue1 = (angle * 3) % 360;
-        ctx.save();
-        ctx.strokeStyle = 'hsl('+hue1+',100%,65%)';
-        ctx.lineWidth = 5;
-        ctx.shadowColor = 'hsl('+hue1+',100%,70%)';
-        ctx.shadowBlur = 30;
-        ctx.setLineDash([tailLen, perimeter - tailLen]);
-        ctx.lineDashOffset = -pos1;
-        ctx.stroke(path);
-        ctx.restore();
-
-        var pos2 = ((angle + 180)/360) * perimeter;
-        var hue2 = (hue1 + 160) % 360;
-        ctx.save();
-        ctx.strokeStyle = 'hsl('+hue2+',100%,65%)';
-        ctx.lineWidth = 5;
-        ctx.shadowColor = 'hsl('+hue2+',100%,70%)';
-        ctx.shadowBlur = 30;
-        ctx.setLineDash([tailLen, perimeter - tailLen]);
-        ctx.lineDashOffset = -pos2;
-        ctx.stroke(path);
-        ctx.restore();
-
-        ctx.save();
-        for (var i = 0; i < snowflakes.length; i++) {
-            var s = snowflakes[i];
-            s.y += s.speed;
-            s.x += s.drift;
-            if (s.y > h + s.r) { s.y = -s.r; s.x = Math.random() * w; }
-            if (s.x > w + s.r) s.x = -s.r;
-            if (s.x < -s.r) s.x = w + s.r;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(200,230,255,' + s.alpha + ')';
-            ctx.fill();
-        }
-        ctx.restore();
-
-        angle = (angle + 1.2) % 360;
-        animId = requestAnimationFrame(draw);
-    }
-
-    draw();
-    return { id: function(){ return animId; } };
-}
-
-// ============================================================
-// VHS GLITCH: RGB split + scanline displacement trên canvas ảnh
-// ============================================================
-function startVhsGlitch(imgId, canvasId) {
-    var img = document.getElementById(imgId);
-    var cv = document.getElementById(canvasId);
-    if (!img || !cv) return;
-
-    var ctx = cv.getContext('2d');
-    var glitching = false;
-    var glitchTimer = null;
-    var rafId;
-
-    function scheduleGlitch() {
-        var delay = 2000 + Math.random() * 3000;
-        glitchTimer = setTimeout(function() {
-            triggerGlitch();
-        }, delay);
-    }
-
-    function triggerGlitch() {
-        glitching = true;
-        var duration = 300 + Math.random() * 400;
-        setTimeout(function() {
-            glitching = false;
-            ctx.clearRect(0, 0, cv.width, cv.height);
-            scheduleGlitch();
-        }, duration);
-    }
-
-    function draw() {
-        var w = img.offsetWidth, h = img.offsetHeight;
-        if (w < 1 || h < 1 || !img.complete) { rafId = requestAnimationFrame(draw); return; }
-        cv.width = w; cv.height = h;
-
-        if (!glitching) { rafId = requestAnimationFrame(draw); return; }
-
-        ctx.clearRect(0, 0, w, h);
-
-        try { ctx.drawImage(img, 0, 0, w, h); } catch(e) { rafId = requestAnimationFrame(draw); return; }
-
-        var numSlices = 6 + Math.floor(Math.random() * 8);
-        for (var i = 0; i < numSlices; i++) {
-            var sy = Math.floor(Math.random() * h);
-            var sh = Math.floor(4 + Math.random() * 20);
-            if (sy + sh > h) sh = h - sy;
-            var offsetX = (Math.random() - 0.5) * 30;
-
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.globalAlpha = 0.6;
-            ctx.beginPath();
-            ctx.rect(0, sy, w, sh);
-            ctx.clip();
-            ctx.drawImage(img, offsetX - 6, 0, w, h);
-            ctx.fillStyle = 'rgba(255,0,60,0.35)';
-            ctx.fillRect(0, sy, w, sh);
-            ctx.restore();
-
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.globalAlpha = 0.45;
-            ctx.beginPath();
-            ctx.rect(0, sy, w, sh);
-            ctx.clip();
-            ctx.drawImage(img, offsetX + 6, 0, w, h);
-            ctx.fillStyle = 'rgba(0,200,255,0.35)';
-            ctx.fillRect(0, sy, w, sh);
-            ctx.restore();
-        }
-
-        ctx.save();
-        ctx.globalAlpha = 0.07;
-        for (var y = 0; y < h; y += 3) {
-            ctx.fillStyle = 'rgba(0,0,0,1)';
-            ctx.fillRect(0, y, w, 1);
-        }
-        ctx.restore();
-
-        if (Math.random() < 0.4) {
-            var ny = Math.floor(Math.random() * h);
-            ctx.save();
-            ctx.globalAlpha = 0.5 + Math.random() * 0.4;
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillRect(0, ny, w, 1 + Math.floor(Math.random() * 2));
-            ctx.restore();
-        }
-
-        rafId = requestAnimationFrame(draw);
-    }
-
-    if (img.complete && img.naturalWidth > 0) {
-        scheduleGlitch();
-        draw();
-    } else {
-        img.addEventListener('load', function() {
-            scheduleGlitch();
-            draw();
-        });
-    }
+function textGenerate() {
+    var text = CONFIG.reply;
+    var val = $('#txtReason').val();
+    $('#txtReason').val(text.substring(0, val.length));
+    if (val.length > text.length) $('#txtReason').val("");
 }
 
 function afterFirstPopup() {
-    $('#chaffle-title').css('visibility', 'visible');
-    $('#wrapper, header, #yes, #no, .inner-width, center, p, span[id^="a"], #chaffle-title, #slider, footer, #demo-1, #demo-2, #demo-3').show(200);
-    $('#demo-1, #demo-2, #demo-3').css('opacity', '1');
-    if (typeof window.startTextEffect === 'function') {
-        window.startTextEffect();
-    }
-    setTimeout(function() {
-        if (typeof playMusic === 'function') playMusic();
-    }, 800);
-}
-
-function switchButton() {
-    var audio = new Audio('https://manhhung1606.github.io/manhhung/Cau-noi-ao-that-day-kha-banh-www_tiengdong_com.mp3');
-    audio.play();
-    var leftNo = $('#no').css("left");
-    var topNO = $('#no').css("top");
-    var leftY = $('#yes').css("left");
-    var topY = $('#yes').css("top");
-    $('#no').css("left", leftY);
-    $('#no').css("top", topY);
-    $('#yes').css("left", leftNo);
-    $('#yes').css("top", topNO);
+    $('#wrapper, header, #yes, #no, .inner-width, center, p, #chaffle-title, footer').show();
+    if (typeof playMusic === 'function') playMusic();
 }
 
 function moveButton() {
@@ -585,377 +305,19 @@ function moveButton() {
     audio.play();
     var x = Math.random() * ($(window).width() - $('#no').width()) * 0.9;
     var y = Math.random() * ($(window).height() - $('#no').height()) * 0.3;
-    $('#no').css("left", x + 'px');
-    $('#no').css("top", y + 'px');
+    $('#no').css({ left: x + 'px', top: y + 'px' });
 }
-
-init();
 
 var n = 0;
 $('#no').mousemove(function() {
-    if (n < 1) switchButton();
-    if (n > 1) moveButton();
+    if (n < 1) { 
+        var l = $('#no').css("left"), t = $('#no').css("top");
+        $('#no').css({ left: $('#yes').css("left"), top: $('#yes').css("top") });
+        $('#yes').css({ left: l, top: t });
+    } else moveButton();
     n++;
 });
-$('#no').click(() => {
-    if (screen.width >= 900) switchButton();
-})
 
-function textGenerate() {
-    var text = CONFIG.reply;
-    var val = $('#txtReason').val();
-    if (val.length > 0) {
-        $('#txtReason').val(text.substring(0, val.length));
-    }
-    if (val.length > text.length) {
-        $('#txtReason').val("");
-    }
-}
+$('#yes').click(function() { showGlitchPopup2(); });
 
-$('#yes').click(function() {
-    var audio = new Audio('https://hungdeptrai.com');
-    audio.play();
-    showGlitchPopup2();
-})
-
-function showGlitchPopup2() {
-    var style2 = document.getElementById('glitch-style2');
-    if (!style2) {
-        style2 = document.createElement('style');
-        style2.id = 'glitch-style2';
-        style2.textContent = `
-            #g2-overlay {
-                position: fixed;
-                inset: 0;
-                z-index: 99999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-                background: rgba(0,0,40,0.7);
-            }
-            #g2-wrap {
-                position: relative;
-                border-radius: 8px;
-                width: 100%;
-                max-width: 560px;
-                animation: gPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-            }
-            #g2-canvas {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                border-radius: 8px;
-                pointer-events: none;
-                z-index: 20;
-            }
-            #g2-box {
-                position: relative;
-                width: 100%;
-                background: rgba(5, 5, 30, 0.92);
-                border-radius: 6px;
-                padding: 32px 24px 28px;
-                text-align: center;
-                box-shadow: inset 0 0 40px rgba(0,50,150,0.15);
-            }
-            #g2-box::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                border-radius: 6px;
-                background: repeating-linear-gradient(
-                    0deg, transparent, transparent 2px,
-                    rgba(0,200,255,0.03) 2px, rgba(0,200,255,0.03) 4px
-                );
-                pointer-events: none;
-                z-index: 2;
-            }
-            .g2-avatar-wrap {
-                position: relative;
-                width: 100%;
-                max-width: 320px;
-                aspect-ratio: 1 / 1;
-                margin: 0 auto 20px;
-                z-index: 3;
-                overflow: hidden;
-                border-radius: 3px;
-                box-shadow: 0 0 0 1.5px rgba(0,200,255,0.5),
-                            0 0 8px 2px rgba(0,200,255,0.3),
-                            inset 0 0 6px rgba(0,200,255,0.15);
-                animation: innerNeonPulse 2.5s ease-in-out infinite;
-            }
-            .g2-avatar-wrap img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-                border-radius: 3px;
-                animation: vhsGlitch 4s infinite;
-            }
-            .g2-glitch-canvas {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 4;
-                border-radius: 3px;
-            }
-            .g2-title {
-                position: relative;
-                z-index: 3;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                font-weight: 900;
-                color: #fff;
-                text-shadow: 0 0 8px rgba(0,200,255,0.8), 0 0 20px rgba(0,150,255,0.4);
-                animation: gTextGlitch 4s infinite;
-                margin-bottom: 20px;
-                word-break: break-word;
-                line-height: 1.4;
-            }
-            .g2-input {
-                display: block;
-                position: relative;
-                z-index: 3;
-                width: 100%;
-                height: 50px;
-                padding: 0 16px;
-                box-sizing: border-box;
-                font-family: 'Jura', sans-serif;
-                font-size: 16px;
-                line-height: 50px;
-                color: #FAFAFA;
-                background: rgba(0, 10, 40, 0.9);
-                border: 1.5px solid rgba(0, 170, 255, 0.4);
-                border-radius: 4px;
-                outline: none;
-                text-shadow: 0 0 0.5em cyan;
-                margin: 20px 0;
-                touch-action: manipulation;
-            }
-            .g2-input::-moz-placeholder { color: rgba(250,250,250,0.5); font-size: 16px; }
-            .g2-input::placeholder { color: rgba(250,250,250,0.5); font-size: 16px; }
-            .g2-input:focus { border-color: #0ff; }
-            .g2-btn {
-                position: relative;
-                z-index: 3;
-                display: inline-block;
-                padding: 12px 38px;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                font-weight: 700;
-                letter-spacing: 2px;
-                color: #fff;
-                background: transparent;
-                border: 1.5px solid rgba(0,170,255,0.3);
-                border-radius: 2px;
-                cursor: pointer;
-                text-transform: uppercase;
-                transition: color 0.2s;
-                width: 100%;
-                margin-bottom: 0;
-            }
-            .g2-btn:hover { color: #0df; }
-        `;
-        document.head.appendChild(style2);
-    }
-
-    var overlay2 = document.createElement('div');
-    overlay2.id = 'g2-overlay';
-    overlay2.innerHTML = `
-        <div id="g2-wrap">
-            <canvas id="g2-canvas"></canvas>
-            <div id="g2-box">
-                <div class="g2-avatar-wrap" id="g2-avatar-wrap">
-                    <img id="g2-img" src="https://manhhung1606.github.io/manhhung/Save = Follow\u2661\u300cH\u01b0\u01a1ng \u300d\u2661.jpeg"
-                         onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="M\u1ea1nh H\u00f9ng">
-                    <canvas class="g2-glitch-canvas" id="g2-glitch-cv"></canvas>
-                </div>
-                <div class="g2-title">${CONFIG.question}</div>
-                <input type="text" class="g2-input" id="txtReason" oninput="textGenerate()" placeholder=" Vi\u1ebft g\u00ec c\u0169ng \u0111\u01b0\u1ee3c... ">
-                <button class="g2-btn" id="g2-btn-send">${CONFIG.btnReply}</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay2);
-
-    var wrap2 = document.getElementById('g2-wrap');
-    var canvas2 = document.getElementById('g2-canvas');
-    var ctx2 = canvas2.getContext('2d');
-    var animId2;
-    animId2 = startNeonSnow(wrap2, canvas2, ctx2);
-    startVhsGlitch('g2-img', 'g2-glitch-cv');
-
-    overlay2.addEventListener('click', function(e) {
-        if (e.target === overlay2) {
-            cancelAnimationFrame(animId2.id());
-            shatterAndRemove('g2-overlay', null, null);
-        }
-    });
-
-    document.getElementById('g2-btn-send').addEventListener('click', function() {
-        cancelAnimationFrame(animId2.id());
-        shatterAndRemove('g2-overlay', null, function() {
-            showGlitchPopup3();
-        });
-    });
-}
-
-function showGlitchPopup3() {
-    var style3 = document.getElementById('glitch-style3');
-    if (!style3) {
-        style3 = document.createElement('style');
-        style3.id = 'glitch-style3';
-        style3.textContent = `
-            #g3-overlay {
-                position: fixed;
-                inset: 0;
-                z-index: 99999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-                background: rgba(0,0,40,0.7);
-            }
-            #g3-wrap {
-                position: relative;
-                border-radius: 8px;
-                width: 100%;
-                max-width: 560px;
-                animation: gPopIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;
-            }
-            #g3-canvas {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                border-radius: 8px;
-                pointer-events: none;
-                z-index: 20;
-            }
-            #g3-box {
-                position: relative;
-                width: 100%;
-                background: rgba(5,5,30,0.92);
-                border-radius: 6px;
-                padding: 32px 24px 28px;
-                text-align: center;
-                box-shadow: inset 0 0 40px rgba(0,50,150,0.15);
-            }
-            .g3-avatar-wrap {
-                position: relative;
-                width: 100%;
-                max-width: 320px;
-                aspect-ratio: 1 / 1;
-                margin: 0 auto 20px;
-                z-index: 3;
-                overflow: hidden;
-                border-radius: 3px;
-                box-shadow: 0 0 0 1.5px rgba(0,200,255,0.5),
-                            0 0 8px 2px rgba(0,200,255,0.3),
-                            inset 0 0 6px rgba(0,200,255,0.15);
-                animation: innerNeonPulse 2.5s ease-in-out infinite;
-            }
-            .g3-avatar-wrap img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-                border-radius: 3px;
-                animation: vhsGlitch 4s infinite;
-            }
-            .g3-glitch-canvas {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 4;
-                border-radius: 3px;
-            }
-            .g3-emoji {
-                font-size: 36px;
-                margin-bottom: 12px;
-                z-index: 3;
-                position: relative;
-            }
-            .g3-msg {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 25px;
-                color: #0cf;
-                margin-bottom: 24px;
-                z-index: 3;
-                position: relative;
-                word-break: break-word;
-                line-height: 1.5;
-            }
-            .g3-btn {
-                position: relative;
-                z-index: 3;
-                display: inline-block;
-                padding: 12px 38px;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                font-weight: 700;
-                letter-spacing: 2px;
-                color: #fff;
-                background: transparent;
-                border: 1.5px solid rgba(0,170,255,0.3);
-                border-radius: 2px;
-                cursor: pointer;
-                text-transform: uppercase;
-                transition: color 0.2s;
-                width: 100%;
-                margin-bottom: 0;
-            }
-            .g3-btn:hover { color: #0df; }
-        `;
-        document.head.appendChild(style3);
-    }
-
-    var overlay3 = document.createElement('div');
-    overlay3.id = 'g3-overlay';
-    overlay3.innerHTML = `
-        <div id="g3-wrap">
-            <canvas id="g3-canvas"></canvas>
-            <div id="g3-box">
-                <div class="g3-avatar-wrap" id="g3-avatar-wrap">
-                    <img id="g3-img" src="https://manhhung1606.github.io/manhhung/1777441906182.png"
-                         onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="Popup 3 Image">
-                    <canvas class="g3-glitch-canvas" id="g3-glitch-cv"></canvas>
-                </div>
-                <div class="g3-emoji">${CONFIG.mess}</div>
-                <div class="g3-msg" id="g3-msg-el">${CONFIG.messDesc}</div>
-                <button class="g3-btn" id="g3-btn-ok">${CONFIG.btnAccept}</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay3);
-
-    var wrap3 = document.getElementById('g3-wrap');
-    var canvas3 = document.getElementById('g3-canvas');
-    var ctx3 = canvas3.getContext('2d');
-    var animId3;
-    animId3 = startNeonSnow(wrap3, canvas3, ctx3);
-    startVhsGlitch('g3-img', 'g3-glitch-cv');
-
-    overlay3.addEventListener('click', function(e) {
-        if (e.target === overlay3) {
-            cancelAnimationFrame(animId3.id());
-            shatterAndRemove('g3-overlay', null, function() {
-                if (CONFIG.messLink) window.location = CONFIG.messLink;
-            });
-        }
-    });
-
-    document.getElementById('g3-btn-ok').addEventListener('click', function() {
-        cancelAnimationFrame(animId3.id());
-        shatterAndRemove('g3-overlay', null, function() {
-            if (CONFIG.messLink) window.location = CONFIG.messLink;
-        });
-    });
-}
+init();
