@@ -764,24 +764,48 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
             }
-            .g2-input {
-                position: relative;
-                z-index: 3;
-                width: 100%;
-                padding: 12px 16px;
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 16px;
-                color: #0cf;
-                background: rgba(0,10,40,0.8);
-                border: 1.5px solid rgba(0,170,255,0.3);
-                border-radius: 3px;
-                outline: none;
-                margin-bottom: 0;
-                box-sizing: border-box;
-            }
-            .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
-            .g2-input:focus { border-color: #0ff; }
-            .g2-btn {
+                .g2-input {
+                all: unset;
+
+                position: relative !important;
+                z-index: 3 !important;
+                display: block !important;
+
+                width: 100% !important;
+                min-height: 48px !important;
+                padding: 12px 16px !important;
+                box-sizing: border-box !important;
+
+                font-family: Arial, sans-serif !important;
+                font-size: 16px !important;
+                line-height: 1.4 !important;
+                font-weight: 400 !important;
+
+                color: #0cf !important;
+                background: rgba(0,10,40,0.9) !important;
+
+                border: 1.5px solid rgba(0,170,255,0.4) !important;
+                border-radius: 4px !important;
+                outline: none !important;
+
+                transform: none !important;
+                zoom: 1 !important;
+                scale: 1 !important;
+
+                appearance: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                }
+                .g2-input::placeholder,
+                .g2-input::-moz-placeholder {
+                font-size: 16px !important;
+                font-weight: 400 !important;
+                color: rgba(255,255,255,0.45) !important;
+                opacity: 1 !important;
+                }  
+               .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
+               .g2-input:focus { border-color: #0ff; }
+               .g2-btn {
                 position: relative;
                 z-index: 3;
                 display: inline-block;
