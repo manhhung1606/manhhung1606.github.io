@@ -25,31 +25,39 @@ function shatterAndRemove(overlayId, _unused, cb) {
     var wrap = overlay.querySelector('[id$="-wrap"]') || overlay.firstElementChild;
     if (!wrap) { overlay.remove(); if(cb) cb(); return; }
 
+    // Chụp snapshot của wrap
     var rect = wrap.getBoundingClientRect();
     var W = rect.width, H = rect.height;
     if (W < 1 || H < 1) { overlay.remove(); if(cb) cb(); return; }
 
+    // Tạo canvas vỡ mảnh
     var sc = document.createElement('canvas');
     sc.width = W; sc.height = H;
     sc.style.cssText = 'position:fixed;left:'+rect.left+'px;top:'+rect.top+'px;width:'+W+'px;height:'+H+'px;pointer-events:none;z-index:999999;';
     document.body.appendChild(sc);
     var sctx = sc.getContext('2d');
 
+    // Vẽ nền đơn giản (snapshot màu) — tránh lỗi cross-origin với canvas neon bên trong
     sctx.fillStyle = 'rgba(5,5,30,0.92)';
     sctx.fillRect(0, 0, W, H);
+    // Vẽ border neon giả
     sctx.strokeStyle = 'rgba(0,200,255,0.6)';
     sctx.lineWidth = 2;
     sctx.strokeRect(1, 1, W-2, H-2);
 
+    // Ẩn overlay gốc ngay
     overlay.style.visibility = 'hidden';
 
+    // Tạo mảnh vỡ
     var COLS = 8, ROWS = 6;
     var pw = W / COLS, ph = H / ROWS;
     var pieces = [];
     for (var r = 0; r < ROWS; r++) {
         for (var c = 0; c < COLS; c++) {
             var sx = c * pw, sy = r * ph;
+            // Mỗi mảnh: vị trí tâm, vận tốc bay, xoay
             var cx = sx + pw/2, cy = sy + ph/2;
+            // Hướng bay từ tâm màn hình ra
             var dx = cx - W/2, dy = cy - H/2;
             var dist = Math.sqrt(dx*dx + dy*dy) || 1;
             var speed = 4 + Math.random() * 8;
@@ -67,6 +75,7 @@ function shatterAndRemove(overlayId, _unused, cb) {
         }
     }
 
+    // Animate mảnh vỡ
     var startTime = null;
     var duration = 600;
 
@@ -91,11 +100,13 @@ function shatterAndRemove(overlayId, _unused, cb) {
             sctx.globalAlpha = Math.max(0, p.alpha);
             sctx.translate(p.x, p.y);
             sctx.rotate(p.rot);
+            // Vẽ mảnh: fill + neon border
             sctx.fillStyle = 'rgba(5,5,30,0.92)';
             sctx.fillRect(-p.pw/2, -p.ph/2, p.pw, p.ph);
             sctx.strokeStyle = 'rgba(0,200,255,0.8)';
             sctx.lineWidth = 1;
             sctx.strokeRect(-p.pw/2, -p.ph/2, p.pw, p.ph);
+            // Đường crack
             sctx.strokeStyle = 'rgba(0,220,255,0.5)';
             sctx.lineWidth = 0.5;
             sctx.beginPath();
@@ -121,6 +132,7 @@ function firstQuestion(){
     $('#wrapper, header, #yes, #no, .inner-width, center, p, span[id^="a"], #chaffle-title, #slider, footer, #demo-1, #demo-2, #demo-3').hide();
     $('.leaf').remove();
 
+    // CSS chung
     var style = document.createElement('style');
     style.id = 'glitch-main-style';
     style.textContent = `
@@ -169,6 +181,7 @@ function firstQuestion(){
             box-shadow: inset 0 0 40px rgba(0,50,150,0.15);
         }
 
+        /* ── VHS GLITCH cho ảnh ── */
         .g-avatar-wrap {
             position: relative;
             width: 100%;
@@ -178,6 +191,7 @@ function firstQuestion(){
             z-index: 3;
             overflow: hidden;
             border-radius: 3px;
+            /* Neon nhỏ cho khung ảnh bên trong */
             box-shadow: 0 0 0 1.5px rgba(0,200,255,0.5),
                         0 0 8px 2px rgba(0,200,255,0.3),
                         inset 0 0 6px rgba(0,200,255,0.15);
@@ -195,6 +209,7 @@ function firstQuestion(){
             border-radius: 3px;
             animation: vhsGlitch 4s infinite;
         }
+        /* Canvas overlay vẽ glitch VHS lên ảnh */
         .g-glitch-canvas {
             position: absolute;
             inset: 0;
@@ -213,6 +228,7 @@ function firstQuestion(){
             95% { filter: none; transform: translate(0,0); }
         }
 
+        /* FIX 1: greeting không wrap lộn */
         .g-greeting {
             position: relative;
             z-index: 3;
@@ -291,9 +307,9 @@ function firstQuestion(){
             <canvas id="glitch-canvas"></canvas>
             <div id="glitch-box">
                 <div class="g-avatar-wrap" id="g1-avatar-wrap">
-                    <img id="g1-img" src="https://manhhung1606.github.io/manhhung/Save = Follow\u2661\u300cH\u01b0\u01a1ng \u300d\u2661.jpeg"
+                    <img id="g1-img" src="https://manhhung1606.github.io/manhhung/Save = Follow♡「Hương 」♡.jpeg"
                          onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="M\u1ea1nh H\u00f9ng">
+                         alt="Mạnh Hùng">
                     <canvas class="g-glitch-canvas" id="g1-glitch-cv"></canvas>
                 </div>
                 <div class="g-greeting"><span id="g-typeText"></span></div>
@@ -304,14 +320,18 @@ function firstQuestion(){
     `;
     document.body.appendChild(overlay);
 
+    // Neon border canvas
     var wrap = document.getElementById('glitch-wrap');
     var canvas = document.getElementById('glitch-canvas');
     var ctx = canvas.getContext('2d');
     var animId;
 
     animId = startNeonSnow(wrap, canvas, ctx);
+
+    // VHS Glitch canvas cho ảnh popup1
     startVhsGlitch('g1-img', 'g1-glitch-cv');
 
+    // Scramble effect dùng chung cho cả 2 dòng
     function startScramble(targetText, element, delayMs) {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&!?';
         var revealed = 0;
@@ -336,9 +356,12 @@ function firstQuestion(){
         setTimeout(step, delayMs);
     }
 
+    // Dòng 1 — introTitle, bắt đầu ngay
     startScramble(CONFIG.introTitle, document.getElementById('g-typeText'), 700);
+    // Dòng 2 — introDesc, bắt đầu sau dòng 1 chút
     startScramble(CONFIG.introDesc, document.getElementById('g-sub-scramble'), 700);
 
+    // click ra ngoài → vỡ mảnh
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
             cancelAnimationFrame(animId.id());
@@ -348,6 +371,7 @@ function firstQuestion(){
         }
     });
 
+    // Bấm nút OK → vỡ mảnh
     document.getElementById('g-btn-ok').addEventListener('click', function() {
         cancelAnimationFrame(animId.id());
         shatterAndRemove('glitch-overlay', null, function() {
@@ -400,12 +424,14 @@ function startNeonSnow(wrap, canvas, ctx) {
         var r = 8, perimeter = 2*(w+h), tailLen = perimeter * 0.18;
         var path = makePath(w, h, r);
 
+        // Viền nền mờ
         ctx.save();
         ctx.strokeStyle = 'rgba(0,200,255,0.15)';
         ctx.lineWidth = 1.5;
         ctx.stroke(path);
         ctx.restore();
 
+        // Tia 1 — chạy xuôi
         var pos1 = (angle/360) * perimeter;
         var hue1 = (angle * 3) % 360;
         ctx.save();
@@ -418,6 +444,7 @@ function startNeonSnow(wrap, canvas, ctx) {
         ctx.stroke(path);
         ctx.restore();
 
+        // Tia 2 — đối xứng 180°, màu bổ sung
         var pos2 = ((angle + 180)/360) * perimeter;
         var hue2 = (hue1 + 160) % 360;
         ctx.save();
@@ -430,6 +457,7 @@ function startNeonSnow(wrap, canvas, ctx) {
         ctx.stroke(path);
         ctx.restore();
 
+        // Tuyết rơi bên trong popup
         ctx.save();
         for (var i = 0; i < snowflakes.length; i++) {
             var s = snowflakes[i];
@@ -467,6 +495,7 @@ function startVhsGlitch(imgId, canvasId) {
     var rafId;
 
     function scheduleGlitch() {
+        // Glitch ngẫu nhiên mỗi 2-5 giây
         var delay = 2000 + Math.random() * 3000;
         glitchTimer = setTimeout(function() {
             triggerGlitch();
@@ -492,8 +521,10 @@ function startVhsGlitch(imgId, canvasId) {
 
         ctx.clearRect(0, 0, w, h);
 
+        // Vẽ ảnh gốc làm nền
         try { ctx.drawImage(img, 0, 0, w, h); } catch(e) { rafId = requestAnimationFrame(draw); return; }
 
+        // Tạo scan lines bị lệch (horizontal slice displacement)
         var numSlices = 6 + Math.floor(Math.random() * 8);
         for (var i = 0; i < numSlices; i++) {
             var sy = Math.floor(Math.random() * h);
@@ -501,17 +532,21 @@ function startVhsGlitch(imgId, canvasId) {
             if (sy + sh > h) sh = h - sy;
             var offsetX = (Math.random() - 0.5) * 30;
 
+            // Kênh R — lệch trái
             ctx.save();
             ctx.globalCompositeOperation = 'source-over';
             ctx.globalAlpha = 0.6;
+            // clip vùng slice
             ctx.beginPath();
             ctx.rect(0, sy, w, sh);
             ctx.clip();
+            // vẽ ảnh lệch + tint đỏ
             ctx.drawImage(img, offsetX - 6, 0, w, h);
             ctx.fillStyle = 'rgba(255,0,60,0.35)';
             ctx.fillRect(0, sy, w, sh);
             ctx.restore();
 
+            // Kênh B — lệch phải
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
             ctx.globalAlpha = 0.45;
@@ -524,6 +559,7 @@ function startVhsGlitch(imgId, canvasId) {
             ctx.restore();
         }
 
+        // Scan line overlay nhẹ
         ctx.save();
         ctx.globalAlpha = 0.07;
         for (var y = 0; y < h; y += 3) {
@@ -532,6 +568,7 @@ function startVhsGlitch(imgId, canvasId) {
         }
         ctx.restore();
 
+        // Noise ngang trắng random
         if (Math.random() < 0.4) {
             var ny = Math.floor(Math.random() * h);
             ctx.save();
@@ -544,6 +581,7 @@ function startVhsGlitch(imgId, canvasId) {
         rafId = requestAnimationFrame(draw);
     }
 
+    // Đợi ảnh load xong rồi bắt đầu
     if (img.complete && img.naturalWidth > 0) {
         scheduleGlitch();
         draw();
@@ -567,6 +605,7 @@ function afterFirstPopup() {
     }, 800);
 }
 
+// switch button position
 function switchButton() {
     var audio = new Audio('https://manhhung1606.github.io/manhhung/Cau-noi-ao-that-day-kha-banh-www_tiengdong_com.mp3');
     audio.play();
@@ -611,6 +650,7 @@ function textGenerate() {
         $('#txtReason').val("");
     }
 }
+
 
 $('#yes').click(function() {
     var audio = new Audio('https://hungdeptrai.com');
@@ -671,6 +711,7 @@ function showGlitchPopup2() {
                 pointer-events: none;
                 z-index: 2;
             }
+            /* ảnh popup2 — VHS glitch + neon khung nhỏ */
             .g2-avatar-wrap {
                 position: relative;
                 width: 100%;
@@ -714,31 +755,37 @@ function showGlitchPopup2() {
                 margin-bottom: 20px;
                 word-break: break-word;
                 line-height: 1.4;
-            }
-            .g2-input {
-                display: block;
-                position: relative;
-                z-index: 3;
-                width: 100%;
-                height: 50px;
-                padding: 0 16px;
-                box-sizing: border-box;
-                font-family: 'Jura', sans-serif;
-                font-size: 16px;
-                line-height: 50px;
-                color: #FAFAFA;
-                background: rgba(0, 10, 40, 0.9);
-                border: 1.5px solid rgba(0, 170, 255, 0.4);
-                border-radius: 4px;
-                outline: none;
-                text-shadow: 0 0 0.5em cyan;
-                margin: 20px 0;
-                touch-action: manipulation;
-            }
-            .g2-input::-moz-placeholder { color: rgba(250,250,250,0.5); font-size: 16px; }
-            .g2-input::placeholder { color: rgba(250,250,250,0.5); font-size: 16px; }
-            .g2-input:focus { border-color: #0ff; }
-            .g2-btn {
+             }
+                
+                .g2-input {
+                display: block !important;
+                position: relative !important;
+                z-index: 3 !important;
+                width: 100% !important;
+                height: 50px !important;
+                padding: 0 16px !important;
+                box-sizing: border-box !important;
+                /* Đồng bộ font Jura giống style1.css */
+                font-family: 'Jura', sans-serif !important;
+                font-size: 16px !important; 
+                line-height: 50px !important;
+                color: #FAFAFA !important;
+                background: rgba(0, 10, 40, 0.9) !important;
+                border: 1.5px solid rgba(0, 170, 255, 0.4) !important;
+                border-radius: 4px !important;
+                outline: none !important;
+                text-shadow: 0 0 0.5em cyan !important;
+                margin: 20px 0 !important;
+                touch-action: manipulation !important;
+                }
+                /* Chặn đứng lỗi nhảy chữ trên Firefox */
+                .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+                .g2-input::placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
+
+                
+               
+               .g2-input:focus { border-color: #0ff; }
+               .g2-btn {
                 position: relative;
                 z-index: 3;
                 display: inline-block;
@@ -769,19 +816,20 @@ function showGlitchPopup2() {
             <canvas id="g2-canvas"></canvas>
             <div id="g2-box">
                 <div class="g2-avatar-wrap" id="g2-avatar-wrap">
-                    <img id="g2-img" src="https://manhhung1606.github.io/manhhung/Save = Follow\u2661\u300cH\u01b0\u01a1ng \u300d\u2661.jpeg"
+                    <img id="g2-img" src="https://manhhung1606.github.io/manhhung/Save = Follow♡「Hương 」♡.jpeg"
                          onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="M\u1ea1nh H\u00f9ng">
+                         alt="Mạnh Hùng">
                     <canvas class="g2-glitch-canvas" id="g2-glitch-cv"></canvas>
                 </div>
                 <div class="g2-title">${CONFIG.question}</div>
-                <input type="text" class="g2-input" id="txtReason" oninput="textGenerate()" placeholder=" Vi\u1ebft g\u00ec c\u0169ng \u0111\u01b0\u1ee3c... ">
+                <input type="text" class="g2-input" id="txtReason" onmousemove="textGenerate()" placeholder=" Viết gì cũng được... ">
                 <button class="g2-btn" id="g2-btn-send">${CONFIG.btnReply}</button>
             </div>
         </div>
     `;
     document.body.appendChild(overlay2);
 
+    // Neon border
     var wrap2 = document.getElementById('g2-wrap');
     var canvas2 = document.getElementById('g2-canvas');
     var ctx2 = canvas2.getContext('2d');
@@ -789,6 +837,7 @@ function showGlitchPopup2() {
     animId2 = startNeonSnow(wrap2, canvas2, ctx2);
     startVhsGlitch('g2-img', 'g2-glitch-cv');
 
+    // Click ra ngoài → chỉ vỡ mảnh đóng lại, KHÔNG mở popup sau
     overlay2.addEventListener('click', function(e) {
         if (e.target === overlay2) {
             cancelAnimationFrame(animId2.id());
@@ -796,6 +845,7 @@ function showGlitchPopup2() {
         }
     });
 
+    // Bấm Send → vỡ mảnh rồi mới mở popup3
     document.getElementById('g2-btn-send').addEventListener('click', function() {
         cancelAnimationFrame(animId2.id());
         shatterAndRemove('g2-overlay', null, function() {
@@ -925,7 +975,7 @@ function showGlitchPopup3() {
                 <div class="g3-avatar-wrap" id="g3-avatar-wrap">
                     <img id="g3-img" src="https://manhhung1606.github.io/manhhung/1777441906182.png"
                          onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="Popup 3 Image">
+                         alt="nhìn là thích rồi đúng không">
                     <canvas class="g3-glitch-canvas" id="g3-glitch-cv"></canvas>
                 </div>
                 <div class="g3-emoji">${CONFIG.mess}</div>
@@ -943,6 +993,7 @@ function showGlitchPopup3() {
     animId3 = startNeonSnow(wrap3, canvas3, ctx3);
     startVhsGlitch('g3-img', 'g3-glitch-cv');
 
+    // click ra ngoài → vỡ mảnh
     overlay3.addEventListener('click', function(e) {
         if (e.target === overlay3) {
             cancelAnimationFrame(animId3.id());
@@ -959,3 +1010,23 @@ function showGlitchPopup3() {
         });
     });
 }
+
+
+// Đoạn này để ép trình duyệt nhận CSS mới mà không cần tìm chỗ cũ
+$('<style>')
+    .prop('type', 'text/css')
+    .html(`
+        .g2-input {
+            height: 50px !important;
+            line-height: 50px !important;
+            font-size: 16px !important;
+            font-family: 'Jura', sans-serif !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .g2-input::-moz-placeholder {
+            line-height: 50px !important;
+            opacity: 1 !important;
+        }
+    `)
+    .appendTo('head');
