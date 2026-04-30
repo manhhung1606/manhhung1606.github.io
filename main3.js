@@ -975,7 +975,7 @@ function showGlitchPopup3() {
                 <div class="g3-avatar-wrap" id="g3-avatar-wrap">
                     <img id="g3-img" src="https://manhhung1606.github.io/manhhung/1777441906182.png"
                          onerror="this.style.background='linear-gradient(135deg,#1a1a4e,#0d0d2b)'"
-                         alt="Popup 3 Image">
+                         alt="nhìn là thích rồi đúng không">
                     <canvas class="g3-glitch-canvas" id="g3-glitch-cv"></canvas>
                 </div>
                 <div class="g3-emoji">${CONFIG.mess}</div>
