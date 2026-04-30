@@ -770,7 +770,7 @@ function showGlitchPopup2() {
                 width: 100%;
                 padding: 12px 16px;
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 12px;
+                font-size: 16px;
                 color: #0cf;
                 background: rgba(0,10,40,0.8);
                 border: 1.5px solid rgba(0,170,255,0.3);
