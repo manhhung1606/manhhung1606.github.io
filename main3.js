@@ -686,7 +686,6 @@ function showGlitchPopup2() {
                 position: relative;
                 border-radius: 8px;
                 width: 100%;
-                min-width: 0;
                 max-width: 560px;
                 animation: gPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
             }
@@ -695,7 +694,6 @@ function showGlitchPopup2() {
                 inset: 0;
                 width: 100%;
                 height: 100%;
-                overflow: hidden;
                 border-radius: 8px;
                 pointer-events: none;
                 z-index: 20;
@@ -770,7 +768,6 @@ function showGlitchPopup2() {
                 position: relative;
                 z-index: 3;
                 width: 100%;
-                min-width: 0;
                 padding: 12px 16px;
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 12px;
