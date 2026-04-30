@@ -798,6 +798,8 @@ function showGlitchPopup2() {
                 }
                 .g2-input::placeholder,
                 .g2-input::-moz-placeholder {
+                line-height: normal;
+                vertical-align: middle;
                 font-size: 16px !important;
                 font-weight: 400 !important;
                 color: rgba(255,255,255,0.45) !important;
