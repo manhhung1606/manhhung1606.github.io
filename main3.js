@@ -1010,3 +1010,20 @@ function showGlitchPopup3() {
         });
     });
 }
+
+
+// Đoạn này để ép trình duyệt nhận CSS mới mà không cần tìm chỗ cũ
+$('<style>')
+    .prop('type', 'text/css')
+    .html(`
+        .g2-input {
+            height: 50px !important;
+            line-height: 50px !important;
+            font-size: 16px !important;
+            font-family: 'Jura', sans-serif !important;
+        }
+        .g2-input::placeholder {
+            line-height: 50px !important;
+        }
+    `)
+    .appendTo('head');
