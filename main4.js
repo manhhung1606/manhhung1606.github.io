@@ -692,10 +692,11 @@ function showGlitchPopup2() {
             }
             #g2-box {
                 position: relative;
-                width: 100%;
+                width: 92%;
+                max-width: 430px;
                 background: rgba(5, 5, 30, 0.92);
                 border-radius: 6px;
-                padding: 32px 24px 28px;
+                padding: 36px 28px 32px;
                 text-align: center;
                 box-shadow: inset 0 0 40px rgba(0,50,150,0.15);
             }
