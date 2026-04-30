@@ -663,17 +663,6 @@ $('#yes').click(function() {
 })
 
 function showGlitchPopup2() {
-    // FIX Firefox zoom: inject hoặc cập nhật meta viewport
-    var metaViewport = document.querySelector('meta[name="viewport"]');
-    if (!metaViewport) {
-        metaViewport = document.createElement('meta');
-        metaViewport.name = 'viewport';
-        metaViewport._injected = true;
-        document.head.appendChild(metaViewport);
-    } else {
-        metaViewport._origContent = metaViewport.getAttribute('content');
-    }
-    metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
     var style2 = document.getElementById('glitch-style2');
     if (!style2) {
         style2 = document.createElement('style');
@@ -771,14 +760,14 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
             }
-            /* FIX Firefox zoom: font-size >= 16px, không scale, không transform */
+            /* FIX: bỏ transform scale gây zoom trên Firefox */
             .g2-input {
                 position: relative;
                 z-index: 3;
                 width: 100%;
                 padding: 12px 16px;
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 16px !important;
+                font-size: 16px;
                 color: #0cf;
                 background: rgba(0,10,40,0.8);
                 border: 1.5px solid rgba(0,170,255,0.3);
@@ -786,9 +775,6 @@ function showGlitchPopup2() {
                 outline: none;
                 margin-bottom: 0;
                 box-sizing: border-box;
-                transform: none !important;
-                -webkit-text-size-adjust: 100%;
-                touch-action: manipulation;
             }
             .g2-input::placeholder { color: rgba(250,250,250,0.35); text-shadow: 0 0 0.5em rgba(0,255,255,0.3); }
             .g2-input:focus { border-color: #0ff; }
@@ -849,21 +835,10 @@ function showGlitchPopup2() {
         textGenerate(this);
     });
 
-    function restoreViewport() {
-        var mv = document.querySelector('meta[name="viewport"]');
-        if (!mv) return;
-        if (mv._injected) {
-            mv.remove();
-        } else if (mv._origContent) {
-            mv.setAttribute('content', mv._origContent);
-        }
-    }
-
     // Click ra ngoài → chỉ vỡ mảnh đóng lại, KHÔNG mở popup sau
     overlay2.addEventListener('click', function(e) {
         if (e.target === overlay2) {
             cancelAnimationFrame(animId2.id());
-            restoreViewport();
             shatterAndRemove('g2-overlay', null, null);
         }
     });
@@ -871,7 +846,6 @@ function showGlitchPopup2() {
     // Bấm Send → vỡ mảnh rồi mới mở popup3
     document.getElementById('g2-btn-send').addEventListener('click', function() {
         cancelAnimationFrame(animId2.id());
-        restoreViewport();
         shatterAndRemove('g2-overlay', null, function() {
             showGlitchPopup3();
         });
