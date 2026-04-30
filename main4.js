@@ -758,33 +758,43 @@ function showGlitchPopup2() {
              }
                 
             .g2-input {
-                display: block !important;
-                position: relative !important;
-                z-index: 3 !important;
-                width: 100% !important;
-                height: 50px !important;
-                padding: 0 16px !important;
-                box-sizing: border-box !important;
-                /* Đồng bộ font Jura giống style1.css */
-                font-family: 'Jura', sans-serif !important;
-                font-size: 16px !important; 
-                line-height: 50px !important;
-                color: #FAFAFA !important;
-                background: rgba(0, 10, 40, 0.9) !important;
-                border: 1.5px solid rgba(0, 170, 255, 0.4) !important;
-                border-radius: 4px !important;
-                outline: none !important;
-                text-shadow: 0 0 0.5em cyan !important;
-                margin: 20px 0 !important;
-                touch-action: manipulation !important;
-                }
+              display: block !important;
+              width: 100% !important;
+              height: 52px !important;
+              padding: 0 16px !important;
+              box-sizing: border-box !important;
+
+              font-family: 'Jura', sans-serif !important;
+              font-size: 16px !important;
+              line-height: normal !important;
+
+              color: #FAFAFA !important;
+              background: rgba(0, 10, 40, 0.95) !important;
+
+              border: 1.5px solid rgba(0, 170, 255, 0.4) !important;
+              border-radius: 4px !important;
+              outline: none !important;
+
+              margin: 20px 0 !important;
+
+              appearance: none !important;
+              -webkit-appearance: none !important;
+              -moz-appearance: none !important;
+
+              transform: translateZ(0);
+              zoom: 1;
+            }
                 /* Chặn đứng lỗi nhảy chữ trên Firefox */
             .g2-input::-moz-placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
             .g2-input::placeholder { line-height: 50px !important; color: rgba(250,250,250,0.5) !important; font-size: 16px !important; }
 
                 
                
-            .g2-input:focus { border-color: #0ff; }
+            .g2-input:focus { 
+                font-size: 16px !important;
+                transform: translateZ(0);
+                border-color: #0ff; 
+             }
             .g2-btn {
                 position: relative;
                 z-index: 3;
