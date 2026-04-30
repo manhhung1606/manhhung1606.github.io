@@ -640,20 +640,24 @@ $('#no').click(() => {
     if (screen.width >= 900) switchButton();
 })
 
-// FIX: bỏ setTimeout loop 1ms, dùng event input thay mousemove
-function textGenerate(inputEl) {
+function textGenerate() {
+    var n = "";
     var text = " " + CONFIG.reply;
     var a = Array.from(text);
-    var textVal = inputEl.value || "";
+    var textVal = $('#txtReason').val() ? $('#txtReason').val() : "";
     var count = textVal.length;
-    var n = "";
     if (count > 0) {
-        for (var i = 1; i <= count; i++) {
-            if (i >= a.length) { inputEl.value = ""; return; }
-            n += a[i];
+        for (let i = 1; i <= count; i++) {
+            n = n + a[i];
+            if (i == text.length + 1) {
+                $('#txtReason').val("");
+                n = "";
+                break;
+            }
         }
     }
-    inputEl.value = n;
+    $('#txtReason').val(n);
+    setTimeout("textGenerate()", 1);
 }
 
 $('#yes').click(function() {
@@ -760,14 +764,13 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
             }
-            /* FIX: bỏ transform scale gây zoom trên Firefox */
             .g2-input {
                 position: relative;
                 z-index: 3;
                 width: 100%;
                 padding: 12px 16px;
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 16px;
+                font-size: 12px;
                 color: #0cf;
                 background: rgba(0,10,40,0.8);
                 border: 1.5px solid rgba(0,170,255,0.3);
@@ -815,7 +818,7 @@ function showGlitchPopup2() {
                     <canvas class="g2-glitch-canvas" id="g2-glitch-cv"></canvas>
                 </div>
                 <div class="g2-title">${CONFIG.question}</div>
-                <input type="text" class="g2-input" id="txtReason" placeholder=" Viết gì cũng được... ">
+                <input type="text" class="g2-input" id="txtReason" onmousemove="textGenerate()" placeholder=" Viết gì cũng được... ">
                 <button class="g2-btn" id="g2-btn-send">${CONFIG.btnReply}</button>
             </div>
         </div>
@@ -829,11 +832,6 @@ function showGlitchPopup2() {
     var animId2;
     animId2 = startNeonSnow(wrap2, canvas2, ctx2);
     startVhsGlitch('g2-img', 'g2-glitch-cv');
-
-    // FIX: dùng event input thay vì onmousemove + setTimeout loop
-    document.getElementById('txtReason').addEventListener('input', function() {
-        textGenerate(this);
-    });
 
     // Click ra ngoài → chỉ vỡ mảnh đóng lại, KHÔNG mở popup sau
     overlay2.addEventListener('click', function(e) {
