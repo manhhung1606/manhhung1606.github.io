@@ -640,24 +640,20 @@ $('#no').click(() => {
     if (screen.width >= 900) switchButton();
 })
 
-function textGenerate() {
-    var n = "";
+// FIX: bỏ setTimeout loop 1ms, dùng event input thay mousemove
+function textGenerate(inputEl) {
     var text = " " + CONFIG.reply;
     var a = Array.from(text);
-    var textVal = $('#txtReason').val() ? $('#txtReason').val() : "";
+    var textVal = inputEl.value || "";
     var count = textVal.length;
+    var n = "";
     if (count > 0) {
-        for (let i = 1; i <= count; i++) {
-            n = n + a[i];
-            if (i == text.length + 1) {
-                $('#txtReason').val("");
-                n = "";
-                break;
-            }
+        for (var i = 1; i <= count; i++) {
+            if (i >= a.length) { inputEl.value = ""; return; }
+            n += a[i];
         }
     }
-    $('#txtReason').val(n);
-    setTimeout("textGenerate()", 1);
+    inputEl.value = n;
 }
 
 $('#yes').click(function() {
@@ -764,7 +760,7 @@ function showGlitchPopup2() {
                 word-break: break-word;
                 line-height: 1.4;
             }
-            /* FIX: xóa transform scale, width 100%, font-size >= 16px để Firefox không zoom */
+            /* FIX: bỏ transform scale gây zoom trên Firefox */
             .g2-input {
                 position: relative;
                 z-index: 3;
@@ -833,6 +829,11 @@ function showGlitchPopup2() {
     var animId2;
     animId2 = startNeonSnow(wrap2, canvas2, ctx2);
     startVhsGlitch('g2-img', 'g2-glitch-cv');
+
+    // FIX: dùng event input thay vì onmousemove + setTimeout loop
+    document.getElementById('txtReason').addEventListener('input', function() {
+        textGenerate(this);
+    });
 
     // Click ra ngoài → chỉ vỡ mảnh đóng lại, KHÔNG mở popup sau
     overlay2.addEventListener('click', function(e) {
