@@ -8,7 +8,7 @@ const lines = [
 function createLeaf() {
     const leaf = document.createElement('div');
     leaf.classList.add('leaf');
-    leaf.innerHTML = '❤️';
+    leaf.innerHTML = '🍂';
     leaf.style.top = Math.random() * 100 + 'vh';
     leaf.style.fontSize = (Math.random() * 20 + 10) + 'px';
     leaf.style.animationDuration = (Math.random() * 3 + 2) + 's';
