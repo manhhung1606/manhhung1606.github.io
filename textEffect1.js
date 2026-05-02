@@ -17,11 +17,7 @@ function createLeaf() {
     setTimeout(() => leaf.remove(), 6000);
 }
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Render chữ vào element, bay vào từ phải
+// Render chữ vào element, trả về Promise resolve sau khi tất cả chữ đã landed
 function renderLine(elId, text) {
     return new Promise(resolve => {
         const el = document.getElementById(elId);
@@ -42,80 +38,69 @@ function renderLine(elId, text) {
             }, 40 + i * 70);
         });
 
+        // Resolve sau khi chữ cuối đã landed
         const landDuration = 40 + (text.length - 1) * 70 + 750;
         setTimeout(resolve, landDuration);
     });
 }
 
-// Từng ký tự bay sang trái kiểu lá — xoay + lắc lư ngẫu nhiên
+// Bay tất cả chữ sang trái, từng chữ lần lượt
 function flyLineLeft(elId) {
     return new Promise(resolve => {
         const el = document.getElementById(elId);
         const spans = el.querySelectorAll('.fly-char');
-
         spans.forEach((span, i) => {
             setTimeout(() => {
-                // Random hoá từng ký tự như lá rơi
-                const rot1 = (Math.random() * 40 - 20) + 'deg';
-                const rot2 = (Math.random() * 40 - 20) + 'deg';
-                const rot3 = (Math.random() * 60 - 30) + 'deg';
-                const y1   = (Math.random() * 24 - 12) + 'px';
-                const y2   = (Math.random() * 24 - 12) + 'px';
-                const y3   = (Math.random() * 30 - 15) + 'px';
-                const dur  = (0.9 + Math.random() * 0.5).toFixed(2) + 's';
-
-                span.style.setProperty('--fly-rot1', rot1);
-                span.style.setProperty('--fly-rot2', rot2);
-                span.style.setProperty('--fly-rot3', rot3);
-                span.style.setProperty('--fly-y1', y1);
-                span.style.setProperty('--fly-y2', y2);
-                span.style.setProperty('--fly-y3', y3);
-                span.style.setProperty('--fly-duration', dur);
-                span.style.setProperty('--fly-delay', '0s');
-
                 span.classList.remove('landed');
                 span.classList.add('fly-left');
-            }, i * 45);
+            }, i * 40);
         });
-
-        const flyDuration = (spans.length - 1) * 45 + 1300;
+        // Resolve sau khi chữ cuối bay xong
+        const flyDuration = (spans.length - 1) * 40 + 600;
         setTimeout(resolve, flyDuration);
     });
 }
 
+// Xóa nội dung element
 function clearLine(elId) {
-    document.getElementById(elId).innerHTML = '';
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
 }
 
 async function startLoop() {
     const ids = ['demo-1', 'demo-2', 'demo-3'];
 
     while (true) {
-        // Dòng 1 bay vào, đứng yên 2s
+        // Đứng yên 2s sau khi dòng 1 hiện xong
         await renderLine(ids[0], lines[0]);
         await delay(2000);
 
-        // Dòng 1 bay trái + dòng 2 bay vào CÙNG LÚC
-        const [, ] = await Promise.all([
-            flyLineLeft(ids[0]),
-            renderLine(ids[1], lines[1])
-        ]);
+        // Dòng 1 bắt đầu bay trái → dòng 2 bắt đầu bay vào CÙNG LÚC
+        const fly1 = flyLineLeft(ids[0]);
+        const render2 = renderLine(ids[1], lines[1]);
+        await Promise.all([fly1, render2]);
         clearLine(ids[0]);
+
         await delay(2000);
 
-        // Dòng 2 bay trái + dòng 3 bay vào CÙNG LÚC
-        await Promise.all([
-            flyLineLeft(ids[1]),
-            renderLine(ids[2], lines[2])
-        ]);
+        // Dòng 2 bắt đầu bay trái → dòng 3 bắt đầu bay vào CÙNG LÚC
+        const fly2 = flyLineLeft(ids[1]);
+        const render3 = renderLine(ids[2], lines[2]);
+        await Promise.all([fly2, render3]);
         clearLine(ids[1]);
+
         await delay(2000);
 
         // Dòng 3 bay trái rồi reset
         await flyLineLeft(ids[2]);
         clearLine(ids[2]);
+
         await delay(1200);
     }
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // === Hàm để main.js gọi từ bên ngoài ===
