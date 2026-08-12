@@ -1,15 +1,29 @@
 /* ===== Galaxy Background Script =====
-   Yêu cầu: three.js (r128) load trước file này. Dùng div#bg có sẵn trong index.html.
+   Yêu cầu: three.js (r128) load trước file này.
+   Tự tạo container gắn thẳng vào <body> (KHÔNG dùng #bg có sẵn), vì nếu #bg
+   nằm trong 1 phần tử cha có CSS transform (rất hay gặp ở các trang có hiệu ứng
+   glitch/VHS), position:fixed của #bg sẽ bị "nhốt" trong phần tử cha đó thay vì
+   bám theo toàn màn hình, khiến thiên hà bị ẩn/lệch mất.
    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
    <link rel="stylesheet" href="galaxy.css">
-   <div id="bg"></div>
    <div id="glowOverlay"></div>
    <script src="galaxy.js"></script>
 */
 
 (function () {
-  const mount = document.getElementById('bg');
-  if (!mount || typeof THREE === 'undefined') return;
+  if (typeof THREE === 'undefined') return;
+
+  const mount = document.createElement('div');
+  mount.id = 'galaxy-canvas-root';
+  mount.style.position = 'fixed';
+  mount.style.top = '0';
+  mount.style.left = '0';
+  mount.style.width = '100vw';
+  mount.style.height = '100vh';
+  mount.style.zIndex = '-1';
+  mount.style.overflow = 'hidden';
+  mount.style.pointerEvents = 'none';
+  document.body.appendChild(mount);
 
   // ===== Scene, Camera, Renderer =====
   const scene = new THREE.Scene();
