@@ -36,7 +36,7 @@
     1000
   );
   camera.position.set(0, 3, 6);
-  camera.lookAt(0, 0, 0);
+  camera.lookAt(0, -1.8, 0);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -266,7 +266,7 @@
     camera.position.x += (Math.sin(elapsedTime * 0.04) * 6 + mouseX * 1.5 - camera.position.x) * 0.03;
     camera.position.z += (Math.cos(elapsedTime * 0.04) * 6 - mouseY * 1.0 - camera.position.z) * 0.03;
     camera.position.y += (2.2 + Math.sin(elapsedTime * 0.09) * 0.4 - mouseY * 0.6 - camera.position.y) * 0.03;
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, -1.8, 0);
 
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
