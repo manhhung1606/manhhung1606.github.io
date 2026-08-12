@@ -1,12 +1,20 @@
 /* ===== Galaxy Background Styles ===== */
 
-html, body {
+html {
   margin: 0;
   padding: 0;
   overflow: hidden;
   width: 100%;
   height: 100%;
   background: radial-gradient(ellipse at 50% 40%, #1a0a2e 0%, #0a0518 45%, #020105 100%);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 #bg {
@@ -35,3 +43,15 @@ html, body {
   background: radial-gradient(circle at 50% 55%, rgba(255,140,60,0.12) 0%, rgba(120,60,200,0.08) 30%, rgba(0,0,0,0) 65%);
   z-index: -1;
 }
+
+/* ===== Ép các lớp bọc nội dung trong suốt để lộ thiên hà phía sau =====
+   Các theme cũ thường set background đặc (đen) cho .wrapper / #wrapper / .contentt,
+   khiến nó che mất nền fixed z-index:-1. Dùng !important để thắng CSS gốc. */
+.wrapper,
+#wrapper,
+.contentt,
+body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
